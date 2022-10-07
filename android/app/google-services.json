@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "997228033705",
+    "project_id": "te-mini-project-bb955",
+    "storage_bucket": "te-mini-project-bb955.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997228033705:android:0d387f6fc8f8d7b3715bb8",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "997228033705-sj555nhvh168dauk5sak93v1cqmd6b99.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0L3YAUSjcnA8ly6SPC4_Qs1mOcethUbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "997228033705-sj555nhvh168dauk5sak93v1cqmd6b99.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
