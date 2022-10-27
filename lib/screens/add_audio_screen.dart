@@ -17,10 +17,9 @@ class _AddAudioState extends State<AddAudio> {
 
   final Map<String, String> _audioData = {
     'key': '',
-    'title': '',
+    'tag': '',
     'distance': '',
     'angle': '',
-    'tag': '',
   };
 
   Future<void> submit() async {
@@ -31,11 +30,9 @@ class _AddAudioState extends State<AddAudio> {
     await Provider.of<AudioClassification>(context, listen: false)
         .addAudio(
           Audio(
-            key: _audioData['key']!,
-            title: _audioData['title']!,
+            tag: _audioData['tag']!,
             distance: double.parse(_audioData['distance']!),
             angle: double.parse(_audioData['angle']!),
-            tag: _audioData['tag']!,
           ),
         )
         .then(
@@ -62,7 +59,7 @@ class _AddAudioState extends State<AddAudio> {
           children: [
             TextFormField(
               decoration: const InputDecoration(
-                labelText: 'Title',
+                labelText: 'Tag',
               ),
               validator: (value) {
                 if (value == null) {
@@ -71,7 +68,7 @@ class _AddAudioState extends State<AddAudio> {
                 return null;
               },
               onSaved: (value) {
-                _audioData['title'] = value!;
+                _audioData['tag'] = value!;
               },
             ),
             TextFormField(
@@ -100,20 +97,6 @@ class _AddAudioState extends State<AddAudio> {
               },
               onSaved: (value) {
                 _audioData['angle'] = value!;
-              },
-            ),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Tag',
-              ),
-              validator: (value) {
-                if (value == null) {
-                  return 'Field Empty!';
-                }
-                return null;
-              },
-              onSaved: (value) {
-                _audioData['tag'] = value!;
               },
             ),
             ElevatedButton(

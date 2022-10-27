@@ -4,16 +4,14 @@ import 'package:provider/provider.dart';
 import '../providers/audio.dart';
 
 class AudioInfoCard extends StatefulWidget {
-  final String title;
-  final double angle;
   final String tag;
+  final double angle;
   final double distance;
 
   const AudioInfoCard({
     Key? key,
-    required this.title,
-    required this.angle,
     required this.tag,
+    required this.angle,
     required this.distance,
   }) : super(key: key);
 
@@ -42,7 +40,7 @@ class _AudioInfoCardState extends State<AudioInfoCard> {
             icon,
             SizedBox(width: constraints.maxWidth * 0.05),
             Text(
-              widget.title,
+              widget.tag,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Spacer(),

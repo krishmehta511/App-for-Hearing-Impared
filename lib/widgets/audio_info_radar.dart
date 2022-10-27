@@ -1,9 +1,9 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:myapp/providers/audio.dart';
 import 'package:provider/provider.dart';
-
-import '../providers/audio.dart';
 
 class AudioInfoRadar extends StatefulWidget {
   const AudioInfoRadar({Key? key}) : super(key: key);
@@ -63,40 +63,60 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
 
   @override
   Widget build(BuildContext context) {
-    final audioData = Provider.of<AudioClassification>(context);
     final width = MediaQuery.of(context).size.width;
     final radius = width * 0.5;
+    final audioData = Provider.of<AudioClassification>(context, listen: false);
     return SizedBox(
       height: (2 * radius) - 14, //Padding 7
       width: 2 * radius,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey.withOpacity(0.0),
-              border: Border.all(color: Colors.white),
-            ),
-          ),
-          for(int i = 1; i <= 4; i++)
-            boundaryLines(2 * radius, 0.2 * i),
-          const Icon(Icons.circle, size: 10),
-          ...directions(radius),
-          radarLines(radius, 0),
-          radarLines(radius, pi / 2),
-          ...audioData.audioItems.map((e) {
-            return Transform.translate(
-              offset: getAudioCoords(radius, e.distance, e.angle),
-              child: GestureDetector(
-                onTap: () {
-                  audioData.changeTappedAudio(e);
-                },
-                child: audioData.audioIcon(e.tag),
-              ),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('audio').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
-          }).toList(),
-        ],
+          }
+          final documents = snapshot.data!.docs;
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey.withOpacity(0.0),
+                  border: Border.all(color: Colors.white),
+                ),
+              ),
+              for (int i = 1; i <= 4; i++) boundaryLines(2 * radius, 0.2 * i),
+              const Icon(Icons.circle, size: 10),
+              ...directions(radius),
+              radarLines(radius, 0),
+              radarLines(radius, pi / 2),
+              ...documents
+                  .map((e) => Transform.translate(
+                        offset: getAudioCoords(
+                          radius,
+                          double.parse(e['distance']),
+                          double.parse(e['angle']),
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            audioData.changeTappedAudio(
+                              Audio(
+                                  tag: e['tag'],
+                                  distance: double.parse(e['distance']),
+                                  angle: double.parse(e['angle']),
+                              )
+                            );
+                          },
+                          child: audioData.audioIcon(e['tag']),
+                        ),
+                      ))
+                  .toList(),
+            ],
+          );
+        },
       ),
     );
   }

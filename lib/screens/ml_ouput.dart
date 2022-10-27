@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:tflite_audio/tflite_audio.dart';
 
 import '../widgets/app_drawer.dart';
 
@@ -19,47 +18,47 @@ class _MLOutputState extends State<MLOutput> {
   String _sound = "Press the button to start";
   late Stream<Map<dynamic, dynamic>> result;
 
-  @override
-  void initState() {
-    TfliteAudio.loadModel(
-      model: 'lib/assets/audio_classifier.tflite',
-      label: 'lib/assets/label.txt',
-      isAsset: true,
-      numThreads: 1,
-      inputType: 'rawAudio',
-    );
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   TfliteAudio.loadModel(
+  //     model: 'lib/assets/audio_classifier.tflite',
+  //     label: 'lib/assets/label.txt',
+  //     isAsset: true,
+  //     numThreads: 1,
+  //     inputType: 'rawAudio',
+  //   );
+  //   super.initState();
+  // }
 
-  void _recorder() {
-    String recognition = "";
-    if (!_recording) {
-      setState(() => _recording = true);
-      result = TfliteAudio.startAudioRecognition(
-        bufferSize: 22016,
-        sampleRate: 22050,
-      ).handleError((error) {
-        debugPrint(error);
-      });
-      result.listen((event) {
-        recognition = event["recognitionResult"];
-      }).onDone(() {
-        setState(() {
-          _recording = false;
-          _sound = recognition.split(" ")[0];
-          debugPrint('Sound heard: $_sound');
-        });
-      });
-    }
-  }
+  // void _recorder() {
+  //   String recognition = "";
+  //   if (!_recording) {
+  //     setState(() => _recording = true);
+  //     result = TfliteAudio.startAudioRecognition(
+  //       bufferSize: 22016,
+  //       sampleRate: 22050,
+  //     ).handleError((error) {
+  //       debugPrint(error);
+  //     });
+  //     result.listen((event) {
+  //       recognition = event["recognitionResult"];
+  //     }).onDone(() {
+  //       setState(() {
+  //         _recording = false;
+  //         _sound = recognition.split(" ")[0];
+  //         debugPrint('Sound heard: $_sound');
+  //       });
+  //     });
+  //   }
+  // }
 
-  void _stop() async {
-    TfliteAudio.stopAudioRecognition();
-    setState(() {
-      _sound = 'Press the button to start';
-    });
-    await result.drain();
-  }
+  // void _stop() async {
+  //   TfliteAudio.stopAudioRecognition();
+  //   setState(() {
+  //     _sound = 'Press the button to start';
+  //   });
+  //   await result.drain();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +88,8 @@ class _MLOutputState extends State<MLOutput> {
         children: [
           TextButton(
               onPressed: () {
-                _recorder();
-                Timer(const Duration(seconds: 6), _stop);
+                // _recorder();
+                // Timer(const Duration(seconds: 6), _stop);
               },
               child: const Text('Start')),
           //TextButton(onPressed: _stop, child: const Text('Stop')),
