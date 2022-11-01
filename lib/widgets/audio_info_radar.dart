@@ -18,7 +18,7 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
       width: width * multiple,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: Colors.white54),
       ),
     );
   }
@@ -27,19 +27,19 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
     return [
       const Positioned(
         top: 2,
-        child: Text('F'),
+        child: Text('0°'),
       ),
       const Positioned(
         bottom: 2,
-        child: Text('B'),
+        child: Text('180°'),
       ),
       const Positioned(
         left: 2,
-        child: Text('L'),
+        child: Text('90°'),
       ),
       const Positioned(
         right: 2,
-        child: Text('R'),
+        child: Text('90°'),
       ),
     ];
   }
@@ -50,7 +50,7 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
       child: Container(
         height: (2 * radius) - 55,
         width: 1,
-        color: Colors.white,
+        color: Colors.white54,
       ),
     );
   }

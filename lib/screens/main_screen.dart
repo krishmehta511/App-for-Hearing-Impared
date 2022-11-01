@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../providers/audio.dart';
 
 import '../screens/add_audio_screen.dart';
 
 import '../widgets/app_drawer.dart';
-import '../widgets/audio_info_card.dart';
 import '../widgets/audio_info_radar.dart';
+import '../widgets/audio_list.dart';
 
 class MainScreen extends StatefulWidget {
   static const routeName = '/MainScreen';
@@ -20,11 +21,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  Timer? _timer;
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _timer?.cancel();
   }
 
   @override
@@ -32,7 +35,6 @@ class _MainScreenState extends State<MainScreen> {
     final height = MediaQuery.of(context).size.height -
         kToolbarHeight -
         MediaQuery.of(context).padding.top;
-    final audioData = Provider.of<AudioClassification>(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -54,41 +56,31 @@ class _MainScreenState extends State<MainScreen> {
         alignment: Alignment.bottomCenter,
         height: double.infinity,
         width: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(40, 51, 63, 1),
-        ),
+        color: const Color.fromRGBO(40, 51, 63, 1),
         child: Container(
-          padding: const EdgeInsets.all(7),
-          height: height,
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('audio').snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              final documents = snapshot.data!.docs;
-              return Column(
-                children: [
-                  AudioInfoCard(
-                    tag: documents[0]['tag'],
-                    angle: double.parse(documents[0]['angle']),
-                    distance: double.parse(documents[0]['distance']),
-                  ),
-                  SizedBox(height: height * 0.05),
-                  const AudioInfoRadar(),
-                  SizedBox(height: height * 0.05),
-                  AudioInfoCard(
-                    tag: audioData.tappedAudio.tag,
-                    angle: audioData.tappedAudio.angle,
-                    distance: audioData.tappedAudio.distance,
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
+            padding: const EdgeInsets.all(7),
+            height: height,
+            child: Column(
+              children: [
+                const AudioInfoRadar(),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      if (_timer != null && _timer!.isActive) {
+                        _timer!.cancel();
+                      } else {
+                        _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+                          await Provider.of<AudioClassification>(context, listen: false).fetchAudioFromStorage();
+                        });
+                      }
+                    });
+                    debugPrint(_timer!.isActive.toString());
+                  },
+                  child: Text(_timer != null && _timer!.isActive ? "Stop" : "Start"),
+                ),
+                const AudioList(),
+              ],
+            )),
       ),
     );
   }

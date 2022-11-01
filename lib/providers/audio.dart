@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:colorful_iconify_flutter/icons/twemoji.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:vibration/vibration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 
 class Audio {
   String tag;
@@ -31,7 +37,7 @@ class AudioClassification with ChangeNotifier {
     Widget icon = const Iconify(Twemoji.minus_sign, color: Colors.white,);
     if (tag == 'car_horn' || tag == 'engine_idling') {
       icon = const Iconify(Twemoji.automobile);
-    } else if (tag == 'dog_barking') {
+    } else if (tag == 'dog_bark') {
       icon = const Iconify(Twemoji.dog);
     } else if (tag == 'alert') {
       icon = const Iconify(Twemoji.warning);
@@ -73,6 +79,36 @@ class AudioClassification with ChangeNotifier {
       'tag': audio.tag,
       'distance': audio.distance.toString(),
       'angle': audio.angle.toString(),
+      'time': DateTime.now(),
     });
   }
+
+  Future<void> fetchAudioFromStorage() async {
+    Directory? dir = await getApplicationSupportDirectory();
+    String filePath = '${dir.path}/audio.wav';
+    File file = File(filePath);
+    final storage = FirebaseStorage.instance.ref();
+    final list = await storage.listAll();
+    for (var element in list.items) {
+      final randDistance = Random().nextInt(9).toDouble();
+      final randAngle = Random().nextInt(360).toDouble();
+      await element.writeToFile(file);
+      String tag = await getClass(filePath);
+      addAudio(
+        Audio(distance: randDistance, angle: randAngle, tag: tag)
+      );
+    }
+  }
+
+  Future<String> getClass(String filePath) async {
+    const url = "https://api-for-te-project.herokuapp.com/predict";
+    var req = http.MultipartRequest('POST', Uri.parse(url));
+    req.files.add(
+        await http.MultipartFile.fromPath("files", filePath)
+    );
+    var response = await req.send();
+    var responseData = await response.stream.bytesToString();
+    return jsonDecode(responseData);
+  }
+
 }

@@ -15,7 +15,7 @@ class AppDrawer extends StatelessWidget {
         backgroundColor: const Color.fromRGBO(40, 51, 63, 1).withOpacity(0.3),
         child: ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaY: 10, sigmaX: 10),
+            filter: ImageFilter.blur(sigmaY: 15, sigmaX: 15),
             child: Column(
               children: [
                 SizedBox(height: height * 0.1),
@@ -33,7 +33,7 @@ class AppDrawer extends StatelessWidget {
                     "User Name",
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  subtitle: const Text("ussername@gmail.com"),
+                  subtitle: const Text("username@gmail.com"),
                 ),
                 SizedBox(height: height * 0.05),
                 ListTile(

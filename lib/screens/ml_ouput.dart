@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,8 @@ import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_database/firebase_database.dart';
+// import 'package:firebase_database/firebase_database.dart';
+import 'package:http/http.dart' as http;
 
 import '../widgets/app_drawer.dart';
 
@@ -24,6 +26,7 @@ class _MLOutputState extends State<MLOutput> {
   bool _isRecorderReady = false;
   bool _isRecording = false;
   String outputFile = "";
+  String predictedClass = "";
 
   final _storageRef = FirebaseStorage.instance.ref().child("audio/audio.wav");
 
@@ -100,17 +103,37 @@ class _MLOutputState extends State<MLOutput> {
     }
   }
 
+  Future getClass() async {
+    const url = "https://api-for-te-project.herokuapp.com/predict";
+    var req = http.MultipartRequest('POST', Uri.parse(url));
+    req.files.add(
+        await http.MultipartFile.fromPath("files", outputFile)
+    );
+    var response = await req.send();
+    var responseData = await response.stream.bytesToString();
+    setState(() {
+      predictedClass = jsonDecode(responseData);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       drawer: const AppDrawer(),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Machine Learning Model'),
       ),
-      body: Center(
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        color: const Color.fromRGBO(40, 51, 63, 1),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            const SizedBox(width: 20),
             StreamBuilder<RecordingDisposition>(
               stream: _recorder.onProgress,
               builder: (ctx, snapshot) {
@@ -143,23 +166,19 @@ class _MLOutputState extends State<MLOutput> {
               ),
             ),
             ElevatedButton(
-              onPressed: (){
-                play();
-                uploadFile();
+              onPressed: () async {
+                await play();
               },
-              child: const Text('Send Audio'),
+              child: const Text('Play Audio'),
             ),
-            StreamBuilder(
-              stream: FirebaseDatabase.instance.ref().child("predicted_class").onValue,
-              builder: (ctx, snapshot){
-                if(!snapshot.hasData){
-                  return const Text('Loading.....');
-                }
-                final predictedClass = Map<String, dynamic>.from(
-                    (snapshot.data! as DatabaseEvent).snapshot.value as dynamic);
-                return Text(predictedClass["class"], style: const TextStyle(fontSize: 40),);
+            ElevatedButton(
+              onPressed: () async {
+                await uploadFile();
+                await getClass();
               },
+              child: const Text('Classify Audio'),
             ),
+            Text(predictedClass, style: const TextStyle(fontSize: 40)),
           ],
         ),
       ),
