@@ -35,7 +35,6 @@ dependencies:
   cloud_firestore: ^3.4.8
   iconify_flutter: ^0.0.4
   vibration: ^1.7.5
-  flutter_sound_lite:
   permission_handler:
   path_provider:
 

@@ -1,12 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/audio.dart';
-
-import '../screens/add_audio_screen.dart';
-
 import '../widgets/app_drawer.dart';
 import '../widgets/audio_info_radar.dart';
 import '../widgets/audio_list.dart';
@@ -22,6 +17,22 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Timer? _timer;
+
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+      });
+      Provider.of<AudioClassification>(context).fetchAudio().then((value) {
+        setState(() {
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   void dispose() {
@@ -43,14 +54,6 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: const Text('MyApp'),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              Navigator.of(context).pushNamed(AddAudio.routeName);
-            },
-            icon: const Icon(Icons.add),
-          ),
-        ],
       ),
       body: Container(
         alignment: Alignment.bottomCenter,
@@ -61,24 +64,25 @@ class _MainScreenState extends State<MainScreen> {
             padding: const EdgeInsets.all(7),
             height: height,
             child: Column(
-              children: [
-                const AudioInfoRadar(),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (_timer != null && _timer!.isActive) {
-                        _timer!.cancel();
-                      } else {
-                        _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-                          await Provider.of<AudioClassification>(context, listen: false).fetchAudioFromStorage();
-                        });
-                      }
-                    });
-                    debugPrint(_timer!.isActive.toString());
-                  },
-                  child: Text(_timer != null && _timer!.isActive ? "Stop" : "Start"),
-                ),
-                const AudioList(),
+              children: const [
+                AudioInfoRadar(),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     setState(() {
+                //       if (_timer != null && _timer!.isActive) {
+                //         _timer!.cancel();
+                //       } else {
+                //         _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+                //           await Provider.of<AudioClassification>(context, listen: false).fetchAudioFromStorage();
+                //         });
+                //       }
+                //     });
+                //     debugPrint(_timer!.isActive.toString());
+                //   },
+                //   child: Text(_timer != null && _timer!.isActive ? "Stop" : "Start"),
+                // ),
+                SizedBox(height: 20),
+                AudioList(),
               ],
             )),
       ),

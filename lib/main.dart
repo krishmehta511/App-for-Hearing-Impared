@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'screens/main_screen.dart';
-import 'screens/add_audio_screen.dart';
 import 'screens/ml_ouput.dart';
 
 import 'providers/audio.dart';
@@ -51,7 +50,6 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           MainScreen.routeName: (ctx) => const MainScreen(),
-          AddAudio.routeName: (ctx) => const AddAudio(),
           MLOutput.routeName: (ctx) => const MLOutput(),
         },
       ),

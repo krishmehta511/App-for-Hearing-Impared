@@ -1,114 +1,117 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:colorful_iconify_flutter/icons/twemoji.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:vibration/vibration.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
 
 class Audio {
+  String id;
   String tag;
   double distance;
   double angle;
+  String time;
 
   Audio({
+    required this.id,
     required this.distance,
     required this.angle,
     required this.tag,
+    required this.time,
   });
 }
 
 class AudioClassification with ChangeNotifier {
-  Audio _tappedAudio =
-      Audio(tag: '',distance: 0, angle: 0);
+  final List<Audio> _audio = [];
 
-  Audio get tappedAudio {
-    return _tappedAudio;
+  List<Audio> get audio {
+    return _audio;
+  }
+
+  int get lenAudio {
+    return _audio.length;
+  }
+
+  void addToAudio(Audio audio) {
+    if (_audio.where((element) => element.time == audio.time).isEmpty) {
+      _audio.add(audio);
+    }
+  }
+
+  Future<void> fetchAudio() async {
+    var db = FirebaseDatabase.instance.ref("audio").limitToLast(10);
+    db.onValue.listen((DatabaseEvent event) {
+      final keys = (event.snapshot.value as Map<dynamic, dynamic>).keys.toList();
+      final audio =
+          (event.snapshot.value as Map<dynamic, dynamic>).values.toList();
+      for (int i = 0; i < audio.length; i++) {
+        var distance = 0.0;
+        if (_audio.where((element) => element.id == keys[i]).isEmpty){
+          if (audio[i]['tag'] == 'siren' || audio[i]['tag'] == 'car_horn') {
+            if(audio[i]['loudness'] <= -14) {
+              distance = Random().nextInt(5).toDouble() + 5;
+            } else if (audio[i]['loudness'] >= -14 && audio[i]['loudness'] <= -13){
+              distance = Random().nextInt(3).toDouble() + 3;
+            } else if (audio[i]['loudness'] >= -13){
+              distance = Random().nextInt(3).toDouble();
+            }
+            var angle = Random().nextInt(360).toDouble();
+            addToAudio(Audio(
+              id: keys[i],
+              distance: distance,
+              angle: angle,
+              tag: audio[i]['tag'],
+              time: DateTime.now().toIso8601String(),
+            ));
+          }
+        }
+      }
+      checkAll();
+      deleteFirst();
+    });
+  }
+
+  void checkAll(){
+    for (int i = 0; i < audio.length; i++){
+      if (audio[i].distance <= 2){
+        fireAlert();
+      }
+    }
+  }
+
+  Future<void> fireAlert() async {
+    if (await Vibration.hasVibrator() == true) {
+      Vibration.vibrate(duration: 1500, amplitude: 200);
+    }
+  }
+
+  void deleteFirst(){
+    if (_audio.length > 5){
+      _audio.removeAt(0);
+    }
+    notifyListeners();
   }
 
   Widget audioIcon(String tag) {
-    Widget icon = const Iconify(Twemoji.minus_sign, color: Colors.white,);
-    if (tag == 'car_horn' || tag == 'engine_idling') {
+    Widget icon = const Iconify(
+      Twemoji.minus_sign,
+      color: Colors.white,
+    );
+    if (tag == 'car_horn') {
       icon = const Iconify(Twemoji.automobile);
-    } else if (tag == 'dog_bark') {
-      icon = const Iconify(Twemoji.dog);
-    } else if (tag == 'alert') {
-      icon = const Iconify(Twemoji.warning);
-    } else if (tag == 'children_playing') {
-      icon = Image.asset(
-        'lib/images/people_talking.png',
-        scale: 3,
-      );
-    } else if(tag == 'air_conditioner'){
-      icon = const Icon(Icons.ac_unit);
-    } else if (tag == 'street_music') {
-      icon = const Iconify(Twemoji.musical_note);
-    } else if (tag == 'gun_shot') {
-      icon = const Iconify(Twemoji.pistol);
     } else if (tag == 'siren') {
       icon = const Iconify(Twemoji.ambulance);
-    } else if (tag == 'jackhammer' || tag == 'drilling') {
-      icon = const Iconify(Twemoji.construction);
     }
     return icon;
   }
 
-  void changeTappedAudio(Audio audio) async {
-    _tappedAudio = Audio(
-      tag: audio.tag,
-      distance: audio.distance,
-      angle: audio.angle,
-    );
+  Future<void> onTappedAudio(Audio audio) async {
+    _audio.remove(audio);
+    await FirebaseDatabase.instance.ref("audio").child(audio.id).remove();
     notifyListeners();
   }
 
-  Future<void> addAudio(Audio audio) async {
-    if(audio.tag == 'Alert'){
-      if (await Vibration.hasVibrator() == true) {
-        Timer(const Duration(seconds: 5), () => Vibration.vibrate(pattern: [0, 200, 100, 200]));
-      }
-    }
-    await FirebaseFirestore.instance.collection('audio').add({
-      'tag': audio.tag,
-      'distance': audio.distance.toString(),
-      'angle': audio.angle.toString(),
-      'time': DateTime.now(),
-    });
-  }
-
-  Future<void> fetchAudioFromStorage() async {
-    Directory? dir = await getApplicationSupportDirectory();
-    String filePath = '${dir.path}/audio.wav';
-    File file = File(filePath);
-    final storage = FirebaseStorage.instance.ref();
-    final list = await storage.listAll();
-    for (var element in list.items) {
-      final randDistance = Random().nextInt(9).toDouble();
-      final randAngle = Random().nextInt(360).toDouble();
-      await element.writeToFile(file);
-      String tag = await getClass(filePath);
-      addAudio(
-        Audio(distance: randDistance, angle: randAngle, tag: tag)
-      );
-    }
-  }
-
-  Future<String> getClass(String filePath) async {
-    const url = "https://api-for-te-project.herokuapp.com/predict";
-    var req = http.MultipartRequest('POST', Uri.parse(url));
-    req.files.add(
-        await http.MultipartFile.fromPath("files", filePath)
-    );
-    var response = await req.send();
-    var responseData = await response.stream.bytesToString();
-    return jsonDecode(responseData);
-  }
 
 }

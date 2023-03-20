@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/audio.dart';
 import 'package:provider/provider.dart';
+import 'package:vibration/vibration.dart';
 
 class AudioInfoRadar extends StatefulWidget {
   const AudioInfoRadar({Key? key}) : super(key: key);
@@ -61,23 +63,24 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
         (radius * distance / 10) * cos((pi / 2) + angleInRad));
   }
 
+  final _database = FirebaseDatabase.instance.ref();
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final radius = width * 0.5;
-    final audioData = Provider.of<AudioClassification>(context, listen: false);
+    final audioData = Provider.of<AudioClassification>(context);
     return SizedBox(
-      height: (2 * radius) - 14, //Padding 7
+      height: (2 * radius) - 14,
       width: 2 * radius,
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('audio').snapshots(),
-        builder: (context, snapshot) {
+      child: StreamBuilder(
+        stream: _database.child("audio").orderByKey().onValue,
+        builder: (context,AsyncSnapshot<DatabaseEvent> snapshot) {
           if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
-          final documents = snapshot.data!.docs;
           return Stack(
             alignment: Alignment.center,
             children: [
@@ -93,27 +96,19 @@ class _AudioInfoRadarState extends State<AudioInfoRadar> {
               ...directions(radius),
               radarLines(radius, 0),
               radarLines(radius, pi / 2),
-              ...documents
-                  .map((e) => Transform.translate(
-                        offset: getAudioCoords(
-                          radius,
-                          double.parse(e['distance']),
-                          double.parse(e['angle']),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            audioData.changeTappedAudio(
-                              Audio(
-                                  tag: e['tag'],
-                                  distance: double.parse(e['distance']),
-                                  angle: double.parse(e['angle']),
-                              )
-                            );
-                          },
-                          child: audioData.audioIcon(e['tag']),
-                        ),
-                      ))
-                  .toList(),
+              ...audioData.audio.map((e){
+                return Transform.translate(
+                  offset: getAudioCoords(
+                    radius,
+                    e.distance,
+                    e.angle,
+                  ),
+                  child: GestureDetector(
+                    onTap: () => audioData.onTappedAudio(e),
+                    child: audioData.audioIcon(e.tag),
+                  ),
+                );
+              }),
             ],
           );
         },
