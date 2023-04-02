@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'screens/main_screen.dart';
-import 'screens/ml_ouput.dart';
 
 import 'providers/audio.dart';
 
@@ -29,10 +28,12 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'MyApp',
         theme: ThemeData(
+          backgroundColor: const Color.fromRGBO(40, 51, 63, 1),
+          primaryColor: Colors.white,
           brightness: Brightness.dark,
           textTheme: const TextTheme(
             titleLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-            titleMedium: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            titleMedium: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             titleSmall: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ),
@@ -48,10 +49,6 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        routes: {
-          MainScreen.routeName: (ctx) => const MainScreen(),
-          MLOutput.routeName: (ctx) => const MLOutput(),
-        },
       ),
     );
   }

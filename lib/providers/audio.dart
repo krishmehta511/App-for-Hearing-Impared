@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:firebase_database/firebase_database.dart';
@@ -6,6 +8,7 @@ import 'package:iconify_flutter/iconify_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:colorful_iconify_flutter/icons/twemoji.dart';
 import 'package:vibration/vibration.dart';
+import 'package:http/http.dart' as http;
 
 class Audio {
   String id;
@@ -25,6 +28,7 @@ class Audio {
 
 class AudioClassification with ChangeNotifier {
   final List<Audio> _audio = [];
+  static const apiKey = "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";
 
   List<Audio> get audio {
     return _audio;
@@ -111,6 +115,20 @@ class AudioClassification with ChangeNotifier {
     _audio.remove(audio);
     await FirebaseDatabase.instance.ref("audio").child(audio.id).remove();
     notifyListeners();
+  }
+
+  Future<String> transcribeAudio(String filePath) async {
+    var url = Uri.https("api.openai.com", "v1/audio/transcriptions");
+    var request = http.MultipartRequest("POST", url);
+    request.headers.addAll(({"Authorization" : "Bearer $apiKey"}));
+    request.fields["model"] = "whisper-1";
+    request.fields["language"] = "en";
+    request.files.add(http.MultipartFile.fromString('file', filePath));
+    var response = await request.send();
+    var newResponse = await http.Response.fromStream(response);
+    var responseData = json.decode(newResponse.body);
+    debugPrint(responseData.toString());
+    return responseData["text"];
   }
 
 

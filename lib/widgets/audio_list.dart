@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +54,7 @@ class _AudioListState extends State<AudioList> {
                 child: Consumer<AudioClassification>(
                   builder: (_, data, __) => ListView.builder(
                     physics: const BouncingScrollPhysics(),
+                    reverse: true,
                     padding: const EdgeInsets.all(0),
                     itemCount: data.lenAudio,
                     itemBuilder: (context, index) {
@@ -69,8 +68,12 @@ class _AudioListState extends State<AudioList> {
                       final side = (audioData.audio[index].angle) > 90 && (audioData.audio[index].angle) < 270
                           ? "Left"
                           : "Right";
-                      if(side == "Right" && angle >= 270){
-                        angle = (360-angle+90);
+                      if(side == "Right"){
+                        if (angle >= 270){
+                          angle = (360-angle+90);
+                        } else {
+                          angle = 90 - angle;
+                        }
                       } else if(side == "Left") {
                         angle = (angle-90);
                       }

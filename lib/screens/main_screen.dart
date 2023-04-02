@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/audio.dart';
-import '../widgets/app_drawer.dart';
+
 import '../widgets/audio_info_radar.dart';
 import '../widgets/audio_list.dart';
+
+import 'transcribe.dart';
+import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   static const routeName = '/MainScreen';
@@ -19,15 +23,20 @@ class _MainScreenState extends State<MainScreen> {
   Timer? _timer;
 
   bool _isInit = true;
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      setState(() {
-      });
+      setState(() {});
       Provider.of<AudioClassification>(context).fetchAudio().then((value) {
-        setState(() {
-        });
+        setState(() {});
       });
     }
     _isInit = false;
@@ -41,50 +50,88 @@ class _MainScreenState extends State<MainScreen> {
     _timer?.cancel();
   }
 
+  static const List<List<Widget>> _widgetOptions = <List<Widget>>[
+    [
+      Spacer(),
+      AudioInfoRadar(),
+      SizedBox(height: 20),
+      AudioList(),
+      SizedBox(height: 10),
+    ],
+    [
+      Spacer(),
+      Transcribe(),
+    ],
+    [
+      Spacer(),
+      ProfileScreen(),
+    ],
+  ];
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height -
-        kToolbarHeight -
-        MediaQuery.of(context).padding.top;
+        kToolbarHeight;
+    final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: const AppDrawer(),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: const Text('MyApp'),
       ),
-      body: Container(
-        alignment: Alignment.bottomCenter,
-        height: double.infinity,
-        width: double.infinity,
-        color: const Color.fromRGBO(40, 51, 63, 1),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Container(
-            padding: const EdgeInsets.all(7),
-            height: height,
-            child: Column(
-              children: const [
-                AudioInfoRadar(),
-                // ElevatedButton(
-                //   onPressed: () {
-                //     setState(() {
-                //       if (_timer != null && _timer!.isActive) {
-                //         _timer!.cancel();
-                //       } else {
-                //         _timer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-                //           await Provider.of<AudioClassification>(context, listen: false).fetchAudioFromStorage();
-                //         });
-                //       }
-                //     });
-                //     debugPrint(_timer!.isActive.toString());
-                //   },
-                //   child: Text(_timer != null && _timer!.isActive ? "Stop" : "Start"),
-                // ),
-                SizedBox(height: 20),
-                AudioList(),
-              ],
-            )),
+          alignment: Alignment.bottomCenter,
+          height: height,
+          width: width,
+          padding: const EdgeInsets.all(7),
+          color: Theme.of(context).backgroundColor,
+          child: Column(
+            children: [
+              ..._widgetOptions.elementAt(_selectedIndex),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.transcribe),
+            label: "Transcribe",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: Theme.of(context).backgroundColor,
+        elevation: 0,
+        selectedIconTheme: IconThemeData(
+          color: Theme.of(context).primaryColor,
+          size: 25,
+        ),
+        selectedLabelStyle: TextStyle(
+          fontSize: 15,
+          color: Theme.of(context).primaryColor,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: Theme.of(context).primaryColor.withOpacity(0.7),
+          size: 20,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 13,
+          color: Theme.of(context).primaryColor.withOpacity(0.7),
+        ),
+        selectedItemColor: Colors.white,
       ),
     );
   }
