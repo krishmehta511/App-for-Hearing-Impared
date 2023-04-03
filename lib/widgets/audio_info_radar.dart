@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/audio.dart';
 import 'package:provider/provider.dart';
-import 'package:vibration/vibration.dart';
 
 class AudioInfoRadar extends StatefulWidget {
   const AudioInfoRadar({Key? key}) : super(key: key);

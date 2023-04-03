@@ -31,19 +31,15 @@ dependencies:
     sdk: flutter
   http: ^0.13.5
   provider: ^6.0.3
-  firebase_core: ^1.24.0
-  cloud_firestore: ^3.4.8
-  iconify_flutter: ^0.0.4
+  firebase_core: ^2.9.0
   vibration: ^1.7.5
   permission_handler:
   path_provider:
-  flutter_sound:
   speech_to_text:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  firebase_storage: ^10.3.11
   firebase_database:
 
 dev_dependencies:
@@ -70,7 +66,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/images/people_talking.png
+    - lib/images/car.png
+    - lib/images/amb.png
+    - lib/images/amb1.png
 #    - lib/assets/audio_classifier.tflite
 #    - lib/assets/label.txt
 #    - lib/assets/posi.wav
